@@ -3,21 +3,7 @@
 - Module 01: Protocol Independent Routing Concepts
 - Module 02: Protocol Independent Routing Configuring and Monitoring
 ----
-# Static routes and floating routes:
-```
-set routing-options static route 192.168.1.0/24 next-hop 10.1.1.1
-set routing-options static route 192.168.1.0/24 qualified-next-hop 10.1.2.1 preference 6
-
-static {
-    route 0.0.0.0/0 {
-        next-hop 10.1.1.18;
-        no-readvertise;
-        resolve;
-        tag 666;
-        preference 240;
-    }
-}
-```
+## Protocol Independent Routing:
 ## Martian Addresses 
 - Routers ingnore updated that anounce martian Addresses by defaul, except default route which is allowed 
 - In order to change default behavoir we need to overide the default rules.
@@ -56,20 +42,47 @@ martians {
     192.0.0.8/32 exact allow;
 }
 ```
+
+# Static routes and floating routes:
+ - Default AD/Preference 5
+ - A summary/aggregated static route Will stay in RT even no contributing route is present in RT, A route like this doesn't have a next-hop but discard keyword.
+
+```
+set routing-options static route 192.168.1.0/24 discard
+set routing-options static route 192.168.1.0/24 next-hop 10.1.1.1
+set routing-options static route 192.168.1.0/24 qualified-next-hop 10.1.2.1 preference 6
+
+static {
+    route 0.0.0.0/0 {
+        next-hop 10.1.1.18;
+        no-readvertise;
+        resolve;
+        tag 666;
+        preference 240;
+    }
+}
+```
+
 # To read: [Very Good reference](https://momcanfixanything.com/aggregate-generated-additional-notes/)
-## Aggregated Routes`(Summary/Discard route)` https://www.juniper.net/documentation/en_US/junos/topics/concept/policy-aggregate-routes.html
+## Aggregated Route`(Summary/Discard route)` https://www.juniper.net/documentation/en_US/junos/topics/concept/policy-aggregate-routes.html
   - Default AD/Preference 130
   - Discard routes -- by default next-hop is "Reject" if its not specified, available options are discard & reject
-  - An aggregate route becomes active when it has one or more contributing routes
+  - An aggregate route becomes active when it has one or more contributing routes(CISCo: subsequent)
   - Oposit to genereated routes it includes direct connected routes as contributing route.
+  - Aggregate routes are esential to BGP since those preservs BGP rooting information like AS-SET && others. Static/Generated won't assuming using discard for all. 
+
+  NOTE: The summary route’s next-hop is taken from the “primary” contributing route’s next-hop. Which route is chosen as the primary, you ask? Here’s the process:
+- Choose the route with the lowest route preference (aka administrative distance)
+- If there’s more than one route with the same preference, use the lowest IP address number as a tie breaker
+
 ```
-  set routing-options aggregate route 172.20.0.0/22 
+  set routing-options aggregate route 172.20.0.0/22 [discard|reject]
   
   aggregate {
-    route 10.0.0.0/22 discard; 
+    route 10.0.0.0/22 [discard|reject]; 
     }
 ```
-## Generated Routes(default route/last resort route) - are a type of aggregated routes
+## Generated Route`(default route/last resort route)` - is a type of aggregated route. [A good reference](https://www.networkfuntimes.com/junos-aggregate-routes-vs-generate-routes-how-to-summarise-on-juniper-routers/)
   - Default AD/Preference 130
   - Usually used for last resort route or default route
   - The summary route’s next-hop is taken from the “primary” contributing route’s next-hop by citeria:"
@@ -92,18 +105,19 @@ martians {
 
 ## Routing Instances: - is a logical segmentation of a router.
 ### Master Routing Instance[RI]: default RI in JunOS
-#### Most important RIBs:
+#### Most important RIBs: [Link to Mom's blog inet.2](https://momcanfixanything.com/junos-routing-tables-part-1/)
     - unicast:    inet.0 = IPv4, inet6.0 = IPv6  
     - multicast:  inet.1 = IPv4 - multicast forwarding cache
-                  inet.2 = Used by MP-BGP for Unicast routes used for multicast RPF lookup.
+                  inet.2 = Used by MP-BGP for Unicast routes used for multicast RPF lookup.(Stores IPv4 Unicast Routes used for Multicast(Ex: PIM) Reverse-path-forwarding) 
+                           `inet.2 is a UNICAST routing table; used for multicast traffic RPF checks, but still a unicast routing table.` 
 				  inet.4 = Used for Multicast Source Discovery Protocol(MSDP) route entires.
     - MPLS:       inet.3 = MPLS for path information, underlayed network between PE and P routers.
                             Populated by an IGP {ISIS, OSPF, RIPv2}
                   mpls.0 = Label Switch Path information next-hops
 
-
+    - iso.0     -- ISIS NETs
     - inet.0	-- IPv4 unicast
-    - inet.2	-- (Recursive lookups)RPF checks for multicast traffic or/and MPLS LSP. Unpopulated by default. Needs to import interfaces and roouting tables into rib-groups. https://community.juniper.net/communities/community-home/digestviewer/viewthread?MID=63648
+    - inet.2	-- RPF checks for multicast traffic or/and MPLS LSP. Unpopulated by default. Needs to import interfaces and roouting tables into rib-groups. https://community.juniper.net/communities/community-home/digestviewer/viewthread?MID=63648
     - inet.3	-- (BGP Next-Hop Resolution)MPLS egress point for LSP<<-{LDP|RSVP}. Using IGP/LDP to install inter-AS links into inet.3 to resolve the unchanged BGP next-hop using an LSPs.    
     - inet6.0   -- IPv6 unicast 
 
@@ -267,6 +281,9 @@ rib-groups {
  
 >### Troubleshoting commands
 ```
+    show route all
+    show route hidden
+    show route table BACKBONE.inet.0 hidden 10.100.100.0/28 extensive
 	show route instance summary
     show route instance CORPORATE summary  
     show route instance CORPORATE detail    *//Shows the interfaces that are tied to the CORPORATE Routing Instance
@@ -275,6 +292,7 @@ rib-groups {
 	show route table BACKBONE.inet.0 
 	show route instance BACKBONE
 	ping 10.100.100.2 routing-instance BACKBONE
+    
 
     show route resolution                       *//shows indirect next-hop resolution aka static route with resolve keyword? 
     show route prefix/pref_leght

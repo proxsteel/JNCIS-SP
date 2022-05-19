@@ -11,55 +11,74 @@
 - SPF `- Djikstra Algh.`
 - MCAST `All SPF Routers - 224.0.0.5`
 	    `DR router/pseudo node - 224.0.0.6`
-- Timers: `Hello(10)` & `Dead-timer(40)` || `NBMA(30/120)`; `LSA-Aging()`. 
+- Timers: `Hello(10)` & `Dead-timer(40)` || `NBMA(30/120)`; `LSA-MaxAge(60mins||3600sec); LAS-Refresh `. 
 - AD/Preference: `10/100`
-- External routes: `E1/E2 Routers that are imported to OPSF` 
+- External routes: `E1/E2 Routers that are imported into OPSF process from other sourcs like: static, direct, routing-protocols ` 
 - DR/BDR - (Backup) Designated Router`Priority(0-255; 128=default) or Loopback IP or Physical interface IP`
 - ABR - Area Border Router
 - ASBR - Autonomus Sysytem Border Router
 - Backbone Router - An OSFP router that has at least one interface in AREA 0
 - LSDB - a distributed DB and gets populated by LSAs
+- LSA seq number: -- is the same on all OSPF routers unless a change occured. Originating router incremet the seq num and re-flood the LSA. 
+- LSA age time:   -- if no LSA change in each 30 mins LSA-Refresh timer`(defaults: Cisco == 30mins||1800sec; Juniper == 50mins||3000sec)`, then the age timer is set to 0 and LSA Seq Num incremented and the originating router re-floods the LSA. Also. when an originationg router needs to flush the LSA for the area, it sets the LSA age timer to `C&J: MaxAge==3600sec` and re-floods the LSA making other OSPF routers to remove that LSA from its LSDB.
+
 
 ![DIAGRAM - Area Types and Associated LSA Types ](./ospfLSAreaTypes.png) 
 
 > #### LSAs - Link State Advertisments: 
 >> - Type 1 -- Router ID -- Same Area on a particular link/subnet
 >> - Type 2 -- Network -- DR/BDR ID
->> - Type 3 -- NetSummary route -- Between Areas 
+>> - Type 3 -- NetSummary route -- Between Areas `Type 3 LSAs do not triger recalculation of SPF algorithm, because the T3 LSAs do not actually describe the topology. Even T3 cost change or falp it is flooded but the SPF recomputation doesn't occur`
 >> - Type 4 -- ASBR 
->> - Type 5 -- External		-- E1/E2 
+>> - Type 5 -- External		-- E1/E2 [default is E2,`E1 routes are preferred over E2 routes for the same destination. Both Type 1 and Type 2 external metrics can be present in the AS at the same time.  In that event, Type 1 external metrics always take precedence.`]
 >> - Type 6 -- MOSPF(Not supported by CISCO & Juniper) 
 >> - Type 7 -- NSSA External
->> - Type 8-11 -- IPv6 related. 
-								
+>> - Type 8-11 -- (on Cisco) IPv6 related. 
+>> - Type 9: used for graceful restart capability
+>> - Type 10: used for MPLS traffic engineering
+							
 ### Packet Types:
- - Hello 
- - DBD
+ - Hello [Packet Format and Info](./OSPFHelloPacket.png)
+ - DBD          -- not only used when nighborship is forming, also used when a router learns new LSAs and needs to inform those to other neighbors that have to know about new LSAs. As response other neighbors send LSRs and recive LSUs after.
  - LSA-Reqest
  - LSA-Update
  - LSAck
 
+
 #### FSM Neighbor States:
 - Down
+- *Attempt -- `A static neighbor is defined and a hello packet is sent but no hello recived back.`
 - INIT
 - 2-Way
 - ExStart
 - ExChange
 - Loading
 - Full
-- *Waiting
+- *Waiting -- `This is the state on a OSPF enabled (non p2p) interface where none neighbors are attached`
 
 #### Network Types and Timers:
 - p2p
 - p2mp
+- p2m-nonbroadcast `Not an option in Juniper's implementation`
 - broadcast
-- NBMA aka p2m-nonbroadcast `(Cisco timers: 30/120 sec. only if BW is less than 1500kbps)`
+- NBMA -- PS: `Cisco timers: 30/120 sec. only if BW is less than 1500kbps`
 
 ![Table - Link Types and Timers ](./OspfLinkTypes.png)
 
+
+#### Path-type Preference for OSPF Routes - There are four possible types of paths used to route traffic to the destination listed here in decreasing order of preference:
+- 1. intra-area -- Intra-area paths indicate destinations belonging to one of the router’s attached areas.
+- 2. inter-area -- Inter-area paths are paths to destinations in other OSPF areas. These are discovered through the examination of received summary-LSAs T3.
+- 3. type 1 external -- AS external paths are paths to destinations external to the AS. These are detected through the examination of received AS-external-LSAs T5/T7.
+- 4. type 2 external -- E1 routes always are preferred over E2 routes for the same destination. When all paths are Type 2 external paths, the paths with the smallest advertised Type 2 metric are always preferred. 
+
+#### Loop avoiding mechanisms when more the one ABRs connected to the same two areas:
+- 1. The ABR - When choosing the best route, an intra-area route is always better than competing inter-area route, regardless of metric.
+- 2. If an ABR learns a Type 3 LSA inside a None-Backbone Area, the ABR ingnores that LSA when calculating its own routes.
+- 3. Route filtering may occur only on ABRs/ASBRs and on the the routing table in/out but LSDB side, it must be the same on all routers that belongs to the same area. 
+
 ----
 # vLabs OSPF -- Paste in Browser CTRL+ALT+SHIFT && RIGHT CLICK
-
 
 ## OSPF Single-Areas
 ### R1 
@@ -358,6 +377,8 @@ CORPORATE.inet.0: 21 destinations, 21 routes (21 active, 0 holddown, 0 hidden)
                 AS path: I 
 --------------------------------------------------------------------------------
 ```
+### Adding an ASBR to the topology in order to Redistribute BGP to OSPF: 
+![Diagram](./vLABmultiAreaOSPF_BGP.png)
 ### Logical-System and LT interface + OSPF to BGP and vice versa.  
 #### R5
 ```
