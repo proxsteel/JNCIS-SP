@@ -314,6 +314,8 @@ show route logical-system NAME
 ===============================================================================================================================
 ### ECMP -- Load-Balancing: By default no load-balancing on juniper devices.  
 #### Below Diagrams are supposed to help in understanding the Policy's import/export boundaries in Juniper OS
+#### dcd - Interface process , also called device control process. 
+#### The dcd process configures and monitors network interfaces by defining physical characteristics such as link encapsulation, hold times, and keepalive timers
 ![Juniper HL Architecture ](./ExportPolicyBoundaries2.png) ![Juniper HL Architecture ](./ArchDiagram.png) ![Juniper HL Architecture ](./ArchDiagram2.png) 
 
 ```
