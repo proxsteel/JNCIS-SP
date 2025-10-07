@@ -60,6 +60,7 @@
 | **RST** | Reset                     | 3rd bit                 | Abruptly **terminates** a connection due to an error or unexpected condition.                                                                           |
 | **SYN** | Synchronize               | 2nd bit                 | Used to **initiate** a TCP connection and synchronize sequence numbers.                                                                                 |
 | **FIN** | Finish                    | 1st bit (lowest)        | Used to **gracefully close** a TCP connection; indicates no more data to send.                                                                          |
+----
 ####Typical Flag Combinations
 | Flags      | Meaning                            |
 | ---------- | ---------------------------------- |
@@ -342,5 +343,6 @@ If an amount of 80 Bytes is sent to TCP from aplication layer then it won't be s
 
         ![](./TcpSlowStartReset.png)
         ![](./SlowStartLogic.png)
+
 
 
