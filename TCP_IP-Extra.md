@@ -50,14 +50,16 @@
     ![Segment Types](./tcpSegment-Types.png)
 
 #### TCP Flags:
-- CWR
-- ECE
-- URG
-- ACK
-- PSH
-- RST
-- SYN
-- FIN
+| Flag    | Full Name                 | Bit Position (in order) | Purpose                                                                                                                                                 |
+| ------- | ------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **CWR** | Congestion Window Reduced | 8th bit (highest)       | Sent by the sender to indicate it received an **ECE** and has reduced its congestion window (used in Explicit Congestion Notification, ECN).            |
+| **ECE** | ECN-Echo                  | 7th bit                 | Used in ECN to indicate **congestion experienced**. In SYN packets, it indicates ECN capability; later, it echoes congestion back to sender.            |
+| **URG** | Urgent                    | 6th bit                 | Indicates that the **Urgent Pointer** field is valid — data marked as urgent should be prioritized. Rarely used today.                                  |
+| **ACK** | Acknowledgment            | 5th bit                 | Indicates that the **Acknowledgment Number** field is valid — acknowledges received data. Present in almost all packets after connection establishment. |
+| **PSH** | Push                      | 4th bit                 | Requests that the receiver **immediately push** the data to the application (don’t wait for buffer to fill). Used by interactive apps (e.g., Telnet).   |
+| **RST** | Reset                     | 3rd bit                 | Abruptly **terminates** a connection due to an error or unexpected condition.                                                                           |
+| **SYN** | Synchronize               | 2nd bit                 | Used to **initiate** a TCP connection and synchronize sequence numbers.                                                                                 |
+| **FIN** | Finish                    | 1st bit (lowest)        | Used to **gracefully close** a TCP connection; indicates no more data to send.                                                                          |
 
 ----
 ## Reliable delivery:
@@ -330,3 +332,4 @@ If an amount of 80 Bytes is sent to TCP from aplication layer then it won't be s
 
         ![](./TcpSlowStartReset.png)
         ![](./SlowStartLogic.png)
+
