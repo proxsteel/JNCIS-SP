@@ -268,6 +268,7 @@ If an amount of 80 Bytes is sent to TCP from aplication layer then it won't be s
 3. `Self-Clocking`: The sooner Ack comes back, the sooner data segment(tinygrams) is sent. 
 4. `Trade-Off`: This increases the delay, fewer and larger segments are used but delay is higher.
 5. When Nagle Alg. enabled then less amount of TCP data and ACK segments are sent into netowrk, less overhead.
+   #### Note: Nagle Alg. was designed to improve the efficient utilization of the network when BW and Speed were expensive, but in today's modern network(low latency, transactional and time sensitive) it doesn't bring much benefits. Some applications disable it by default.  
 
 ![Nagle enabled vs disabled](./NagleExchanges.png)
 
@@ -343,6 +344,7 @@ If an amount of 80 Bytes is sent to TCP from aplication layer then it won't be s
 
         ![](./TcpSlowStartReset.png)
         ![](./SlowStartLogic.png)
+
 
 
 
