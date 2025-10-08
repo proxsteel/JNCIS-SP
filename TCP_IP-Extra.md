@@ -165,7 +165,7 @@ The Destination is seen as Passive talker/Server that is listening for incoming 
 
 ![Multiple Loss Retransmit](./tcpFastRetransmitMultipleH.png)
 
-### NOTE: Time based Retranmistion looks like Implicit behavoir but Fast-Retransmit more like on-demand retransmit(Expicit request...). OR this can be seen as direct vs indirect packet loss. When indirect the relais on timer when direct than relais on DupAcks?
+### NOTE: Time-based Retransmission looks like an Implicit behavior, but Fast-Retransmission is more like an on-demand Retransmission (explicit request...). OR this can be seen as direct vs indirect packet loss. When indirect loss is detected, TCP relies on timers, when a direct loss is reported, then relies on DupAcks.
 
 ![Time Based vs Fast Retransmition](./TimeBasedVSFastRetransmition.png)
 
@@ -343,6 +343,7 @@ If an amount of 80 Bytes is sent to TCP from aplication layer then it won't be s
 
         ![](./TcpSlowStartReset.png)
         ![](./SlowStartLogic.png)
+
 
 
 
