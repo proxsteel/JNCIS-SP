@@ -170,12 +170,12 @@ The Destination is seen as Passive talker/Server that is listening for incoming 
 ![Time Based vs Fast Retransmition](./TimeBasedVSFastRetransmition.png)
 
 #### Fast Retransmission Features:
-- Selective ACKs:
+- Selective ACKs: -- Optional mechanism in TCP
     - SACK use options field of TCP header in order to request missing segments using one ACK only. Similar to DupACKs when the recovery of missing segmens is needed. 
     - SACKs makes sender to retransmit missing segments(to fill up holles in Receiver's TCP buffer), Sender will use Selective Retranssmition in order to accomplish this.
     - SACK bloks == a pair of 32bits integers representing a hole. A SACK can contain 3 or 4 SACK blocks. A none-SACK receiver can repair only one hole per RTT vs 3|4 on SACK enabled.
 
-- Cumulative ACKs:
+- Cumulative ACKs: -- default mechanism in TCP
     - Used to Ack-lge multiple segments in one ACk, also called Delayed ACK.
     - Based on Delayed ACK Timer, the receiver is ACK-ing at regular base regardles of asymetric ammount of received segments. 
     - Receiver will prefer to ACK data using implicit TCP segments rather then explicit ACK, it means it might send data to the sender and ACK prevoius segment(s).
@@ -343,6 +343,7 @@ If an amount of 80 Bytes is sent to TCP from aplication layer then it won't be s
 
         ![](./TcpSlowStartReset.png)
         ![](./SlowStartLogic.png)
+
 
 
 
